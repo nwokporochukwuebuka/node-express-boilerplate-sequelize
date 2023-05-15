@@ -22,7 +22,7 @@ const verify2factorAuth = catchAsync(async (req, res) => {
   await authService.verify2factorAuthentication(token, user.dataValues.id);
   const tokens = await tokenService.generateAuthTokens(user.dataValues.id);
   res.send({ user, tokens });
-})
+});
 
 const logout = catchAsync(async (req, res) => {
   await authService.logout(req.body.refreshToken);
@@ -59,9 +59,8 @@ const verifyEmail = catchAsync(async (req, res) => {
 const initiate2fa = catchAsync(async (req, res) => {
   const auth = await authService.twoFactorAuthentication(req.user.id);
   await emailService.send2faAuth(req.user.email, auth.url, auth.img);
-  res.send(`<img src="${auth.img}" />`);
-  return;
-})
+  return res.send(`<img src="${auth.img}" />`);
+});
 
 module.exports = {
   register,

@@ -26,7 +26,7 @@ const envVarsSchema = Joi.object()
     EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
     CLOUDINARY_API_SECRET_KEY: Joi.string().description('secret key from cloudinary'),
     CLOUDINARY_API_KEY: Joi.string().description('secret api key from cloudinary'),
-    CLOUD_NAME: Joi.string().description('cloud name')
+    CLOUD_NAME: Joi.string().description('cloud name'),
   })
   .unknown();
 
@@ -56,7 +56,7 @@ module.exports = {
   },
   email: {
     smtp: {
-      service: "gmail",
+      service: 'gmail',
       host: envVars.SMTP_HOST,
       port: envVars.SMTP_PORT,
       auth: {
@@ -69,6 +69,6 @@ module.exports = {
   cloudinary: {
     cloudName: envVars.CLOUD_NAME,
     apiKey: envVars.CLOUDINARY_API_KEY,
-    secretKey: envVars.CLOUDINARY_API_SECRET_KEY
-  }
+    secretKey: envVars.CLOUDINARY_API_SECRET_KEY,
+  },
 };
