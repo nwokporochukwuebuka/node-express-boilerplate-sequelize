@@ -16,6 +16,13 @@ const login = {
     password: Joi.string().required(),
   }),
 };
+const enable2fa = {
+  body: Joi.object().keys({
+    email: Joi.string().required(),
+    password: Joi.string().required(),
+    token: Joi.string().required(),
+  }),
+};
 
 const logout = {
   body: Joi.object().keys({
@@ -58,4 +65,5 @@ module.exports = {
   forgotPassword,
   resetPassword,
   verifyEmail,
+  enable2fa
 };

@@ -60,7 +60,7 @@ const queryUsers = async (filter, options) => {
  * @returns {Promise<User>}
  */
 const getUserById = async (id) => {
-  return db.users.findById(id);
+  return await db.users.findByPk(id);
 };
 
 /**
@@ -87,8 +87,11 @@ const updateUserById = async (userId, updateBody) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
   Object.assign(user, updateBody);
-  await db.users.update(user);
-  return user;
+  return await db.users.update(user.dataValues, {
+    where: {
+        id: userId,
+    }
+});
 };
 
 /**

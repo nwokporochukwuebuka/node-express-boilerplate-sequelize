@@ -38,6 +38,15 @@ module.exports = (sequelize, dataType) => {
     isEmailVerified: {
       type: dataType.BOOLEAN,
     },
+    secret: {
+      type: dataType.STRING, 
+      allowNull: true
+    },
+    enable2fa: {
+      type: dataType.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+    },
   });
 
   return user;

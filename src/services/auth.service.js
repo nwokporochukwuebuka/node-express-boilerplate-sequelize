@@ -4,6 +4,12 @@ const userService = require('./user.service');
 const { db } = require('../models');
 const ApiError = require('../utils/ApiError');
 const { tokenTypes } = require('../config/tokens');
+const speakeasy = require('speakeasy');
+const qrcode = require('qrcode');
+const fs = require('fs');
+const path = require('path');
+const logger = require('../config/logger');
+const uploader = require('../utils/cloudinaryUpload');
 
 /**
  * Login with username and password
@@ -17,6 +23,33 @@ const loginUserWithEmailAndPassword = async (email, password) => {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password');
   }
   return user;
+};
+
+const verify2factorAuthentication = async (token, id) => {
+  // find the user
+  const user = await userService.getUserById(id);
+
+  // verify the user
+  const verified = speakeasy.totp.verify({
+    secret: user.dataValues.secret,
+    encoding: 'base32',
+    token: token,
+    window: 1,
+  });
+  // update the database
+  if (!verified) {
+    return false;
+  }
+
+  await userService.updateUserById(user.dataValues.id, { enable2fa: true });
+  return verified;
+};
+
+const generateSecret = () => {
+  const secret = speakeasy.generateSecret({
+    name: 'My boiler plate', // change this to something hard to guess
+  });
+  return secret.base32;
 };
 
 /**
@@ -90,10 +123,42 @@ const verifyEmail = async (verifyEmailToken) => {
   }
 };
 
+const twoFactorAuthentication = async (id) => {
+  const secret = generateSecret();
+
+  // update database
+  await userService.updateUserById(id, { secret });
+
+  const otpauth_url = speakeasy.otpauthURL({
+    secret: secret,
+    label: 'My boiler plate',
+    issuer: 'Nwokporo Chukwuebuka',
+    encoding: 'base32',
+  });
+
+  // genrating QR Code
+  const qrCodeImg = await qrcode.toDataURL(otpauth_url);
+  const splitImg = qrCodeImg.split(',')[1];
+
+  fs.writeFile(path.join(__dirname, `../assets/images/qrcode/${id}.png`), splitImg, 'base64', (err) => {
+    if (err) {
+      logger.error(err);
+    }
+  });
+
+  // upload to cloudinary
+  uploader(path.join(__dirname, `../assets/images/qrcode/${id}.png`));
+
+  return { img: qrCodeImg };
+};
+
 module.exports = {
+  generateSecret,
+  twoFactorAuthentication,
   loginUserWithEmailAndPassword,
   logout,
   refreshAuth,
   resetPassword,
   verifyEmail,
+  verify2factorAuthentication,
 };

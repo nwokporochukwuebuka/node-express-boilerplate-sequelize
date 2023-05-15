@@ -15,6 +15,15 @@ const login = catchAsync(async (req, res) => {
   res.send({ user, tokens });
 });
 
+const verify2factorAuth = catchAsync(async (req, res) => {
+  const { email, password, token } = req.body;
+  // log the user in
+  const user = await authService.loginUserWithEmailAndPassword(email, password);
+  await authService.verify2factorAuthentication(token, user.dataValues.id);
+  const tokens = await tokenService.generateAuthTokens(user.dataValues.id);
+  res.send({ user, tokens });
+})
+
 const logout = catchAsync(async (req, res) => {
   await authService.logout(req.body.refreshToken);
   res.status(httpStatus.NO_CONTENT).send();
@@ -47,6 +56,13 @@ const verifyEmail = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const initiate2fa = catchAsync(async (req, res) => {
+  const auth = await authService.twoFactorAuthentication(req.user.id);
+  await emailService.send2faAuth(req.user.email, auth.url, auth.img);
+  res.send(`<img src="${auth.img}" />`);
+  return;
+})
+
 module.exports = {
   register,
   login,
@@ -56,4 +72,6 @@ module.exports = {
   resetPassword,
   sendVerificationEmail,
   verifyEmail,
+  initiate2fa,
+  verify2factorAuth,
 };
